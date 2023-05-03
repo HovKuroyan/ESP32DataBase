@@ -54,7 +54,7 @@ public class ConfigActivity extends AppCompatActivity {
             public void onClick(View v) {
                 res = dbHelper.getResults();
                 dbHelper.updateResult(new Result(1, res.get(0).getBellNumber(), res.get(0).getSendText(), res.get(0).getReceiveText(), 0));
-//                startActivity(new Intent(ConfigActivity.this, LoginActivity.class));
+                startActivity(new Intent(ConfigActivity.this, LoginActivity.class));
             }
         });
 
