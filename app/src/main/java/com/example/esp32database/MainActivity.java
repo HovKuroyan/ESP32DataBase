@@ -5,18 +5,23 @@ import static android.content.ContentValues.TAG;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.esp32database.DB.DataBaseHelper;
 import com.example.esp32database.DB.Result;
@@ -27,11 +32,19 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private DatabaseReference mDatabase;
+    private RecyclerView recyclerView;
+    private DatabaseReference databaseReference;
+    private List<Alarm> alarms;
+
+    private AlarmAdapter alarmAdapter;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +54,20 @@ public class MainActivity extends AppCompatActivity {
         SwitchCompat alarmSwitch = findViewById(R.id.mySwitch);
         Spinner alarmTypeSpinner = findViewById(R.id.alarm_type_spinner);
         DataBaseHelper dbHelper = new DataBaseHelper(this);
-        List<Result>  res = dbHelper.getResults();
+        List<Result> res = dbHelper.getResults();
+        //log
+        recyclerView = findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        progressBar = findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.VISIBLE);
+        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+        databaseReference = firebaseDatabase.getReference("alarms").child("alarms-school-1").child("history");
+        mDatabase = FirebaseDatabase.getInstance().getReference("alarms").child("alarms-school-1").child("my-alarm");
+        alarms = new ArrayList<>();
+        alarmAdapter = new AlarmAdapter(alarms, databaseReference);
+
+        recyclerView.setAdapter(alarmAdapter);
+
 
         //check is db empty or stay in is checked
         if (res.isEmpty()) {
@@ -51,26 +77,49 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, LoginActivity.class));
         }
 
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("alarms").child("my-alarm");
-
-
 
         String[] list = getResources().getStringArray(R.array.alarm_types);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_item, list);
         alarmTypeSpinner.setAdapter(adapter);
-        btnConfig.setOnClickListener(new View.OnClickListener() {
+        alarmTypeSpinner.setSelection(0);
+
+        //log
+        databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, ConfigActivity.class));
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                progressBar.setVisibility(View.GONE);
+                alarms.clear();
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    Alarm alarm = dataSnapshot.getValue(Alarm.class);
+                    alarms.add(alarm);
+                }
+                recyclerView.scrollToPosition(alarmAdapter.getItemCount() - 1);
+                alarmAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(MainActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+
+
+        //Switch
         alarmSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 mDatabase.child("isOn").setValue(isChecked);
+
+                Alarm al = new Alarm((String) DateFormat.format("hh:mm:ss a", new Date()),
+                        alarmTypeSpinner.getSelectedItem().toString(), isChecked ? "On" : "Off");
+                alarms.add(al);
+                for (int i = 1; i < alarms.size(); i++) {
+                    databaseReference.child(String.valueOf(i)).setValue(alarms.get(i));
+                }
             }
         });
 
+        //Spinner
         alarmTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -90,9 +139,10 @@ public class MainActivity extends AppCompatActivity {
         mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Boolean on = snapshot.child("isOn").getValue(Boolean.class);
-                alarmSwitch.setChecked(on);
-
+                Boolean switchState = snapshot.child("isOn").getValue(Boolean.class);
+                if (switchState != null) {
+                    alarmSwitch.setChecked(switchState);
+                }
                 String alarmType = snapshot.child("type").getValue(String.class);
                 alarmTypeSpinner.setSelection(getIndex(alarmTypeSpinner, alarmType));
             }
@@ -105,6 +155,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+        btnConfig.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, ConfigActivity.class));
+            }
+        });
     }
 
     private int getIndex(Spinner spinner, String myString) {
