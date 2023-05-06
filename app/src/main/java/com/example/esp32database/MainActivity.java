@@ -38,9 +38,8 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private DatabaseReference mDatabase;
+    private DatabaseReference mDatabase, databaseReference, accounts;
     private RecyclerView recyclerView;
-    private DatabaseReference databaseReference;
     private List<Alarm> alarms;
 
     private AlarmAdapter alarmAdapter;
@@ -60,9 +59,16 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         progressBar = findViewById(R.id.progressBar);
         progressBar.setVisibility(View.VISIBLE);
-        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-        databaseReference = firebaseDatabase.getReference("alarms").child("alarms-school-1").child("history");
+
+        accounts = FirebaseDatabase.getInstance().getReference("accounts");
+        Account account = new Account("AvagDproc", "avagdproc@mail.ru", "12345678");
+
+        accounts.child("1").setValue(account);
+
+        databaseReference = FirebaseDatabase.getInstance().getReference("alarms").child("alarms-school-1").child("history");
         mDatabase = FirebaseDatabase.getInstance().getReference("alarms").child("alarms-school-1").child("my-alarm");
+
+
         alarms = new ArrayList<>();
         alarmAdapter = new AlarmAdapter(alarms, databaseReference);
 
