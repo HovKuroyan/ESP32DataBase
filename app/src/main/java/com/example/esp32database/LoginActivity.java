@@ -66,7 +66,7 @@ public class LoginActivity extends AppCompatActivity {
                 password = etPassword.getText().toString();
 
                 for (int i = 1; i <= count; i++) {
-                    if (accounts.child(String.valueOf(i)))
+//                    if (accounts.child(String.valueOf(i)))
                 }
                 if (TextUtils.isEmpty(login)) {
                     etLogin.setError("Email cannot be empty");
