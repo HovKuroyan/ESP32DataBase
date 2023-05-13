@@ -37,12 +37,9 @@ import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-
-    private DatabaseReference mDatabase;
+    private DatabaseReference mDatabase, databaseReference, accounts;
     private RecyclerView recyclerView;
-    private DatabaseReference databaseReference;
     private List<Alarm> alarms;
-
     private AlarmAdapter alarmAdapter;
     private ProgressBar progressBar;
 
@@ -54,21 +51,21 @@ public class MainActivity extends AppCompatActivity {
         SwitchCompat alarmSwitch = findViewById(R.id.mySwitch);
         Spinner alarmTypeSpinner = findViewById(R.id.alarm_type_spinner);
         DataBaseHelper dbHelper = new DataBaseHelper(this);
-        List<Result> res = dbHelper.getResults();
-        //log
+        List<Result> res = dbHelper.getResults();        //log
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         progressBar = findViewById(R.id.progressBar);
         progressBar.setVisibility(View.VISIBLE);
-        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-        databaseReference = firebaseDatabase.getReference("alarms").child("alarms-school-1").child("history");
+        accounts = FirebaseDatabase.getInstance().getReference("accounts");
+        Account account = new Account("AvagDproc", "avagdproc@mail.ru", "12345678");
+        accounts.child("1").setValue(account);
+        databaseReference = FirebaseDatabase.getInstance().getReference("alarms").child("alarms-school-1").child("history");
         mDatabase = FirebaseDatabase.getInstance().getReference("alarms").child("alarms-school-1").child("my-alarm");
+
         alarms = new ArrayList<>();
         alarmAdapter = new AlarmAdapter(alarms, databaseReference);
 
         recyclerView.setAdapter(alarmAdapter);
-
-
         //check is db empty or stay in is checked
         if (res.isEmpty()) {
             dbHelper.insertResult(new Result(1, "", "", "", 0));
@@ -77,12 +74,10 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, LoginActivity.class));
         }
 
-
         String[] list = getResources().getStringArray(R.array.alarm_types);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_item, list);
         alarmTypeSpinner.setAdapter(adapter);
         alarmTypeSpinner.setSelection(0);
-
         //log
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
@@ -103,17 +98,15 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
         //Switch
         alarmSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 mDatabase.child("isOn").setValue(isChecked);
-
                 Alarm al = new Alarm((String) DateFormat.format("hh:mm:ss a", new Date()),
                         alarmTypeSpinner.getSelectedItem().toString(), isChecked ? "On" : "Off");
                 alarms.add(al);
-                for (int i = 1; i < alarms.size(); i++) {
+                for (int i = 0; i < alarms.size(); i++) {
                     databaseReference.child(String.valueOf(i)).setValue(alarms.get(i));
                 }
             }
@@ -123,7 +116,6 @@ public class MainActivity extends AppCompatActivity {
         alarmTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
                 String selectedType = parent.getItemAtPosition(position).toString();
 //                ((TextView) parent.getChildAt(0)).setTextColor(Color.BLUE);
                 mDatabase.child("type").setValue(selectedType);
@@ -135,8 +127,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
         mDatabase.addValueEventListener(new ValueEventListener() {
+
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 Boolean switchState = snapshot.child("isOn").getValue(Boolean.class);
@@ -153,7 +145,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.w(TAG, "Failed to read value.", error.toException());
             }
         });
-
 
         btnConfig.setOnClickListener(new View.OnClickListener() {
             @Override
