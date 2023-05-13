@@ -30,17 +30,10 @@ public class AlarmAdapter extends RecyclerView.Adapter<AlarmAdapter.ViewHolder> 
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        if (position >= 2) {
-            Alarm alarm = alarms.get(position - 1);
-            holder.tvDateTime.setText(alarm.getDateTime());
-            holder.tvAlarmType.setText(alarm.getAlarmType());
-            holder.switchState.setText(String.valueOf(alarm.isSwitchState()));
-        }else {
-            Alarm alarm = new Alarm();
-//            holder.tvDateTime.setText(alarm.getDateTime());
-//            holder.tvAlarmType.setText(alarm.getAlarmType());
-//            holder.switchState.setText(String.valueOf(alarm.isSwitchState()));
-        }
+        Alarm alarm = alarms.get(position);
+        holder.tvDateTime.setText(alarm.getDateTime());
+        holder.tvAlarmType.setText(alarm.getAlarmType());
+        holder.switchState.setText(String.valueOf(alarm.isSwitchState()));
     }
 
     @Override

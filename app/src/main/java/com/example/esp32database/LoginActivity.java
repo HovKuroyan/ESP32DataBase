@@ -40,10 +40,8 @@ public class LoginActivity extends AppCompatActivity {
         etLogin = findViewById(R.id.username_input);
         etPassword = findViewById(R.id.pass);
         loginBtn = findViewById(R.id.loginBtn);
-
         dbHelper = new DataBaseHelper(this);
         stayIn = findViewById(R.id.stayIn);
-
         DatabaseReference accounts = FirebaseDatabase.getInstance().getReference("accounts");
         accounts.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -58,16 +56,17 @@ public class LoginActivity extends AppCompatActivity {
                 Log.e("Firebase Error", "Error reading data from Firebase: " + databaseError.getMessage());
             }
         });
-
         loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 login = etLogin.getText().toString();
                 password = etPassword.getText().toString();
 
+                //TODO write code here
                 for (int i = 1; i <= count; i++) {
 //                    if (accounts.child(String.valueOf(i)))
                 }
+
                 if (TextUtils.isEmpty(login)) {
                     etLogin.setError("Email cannot be empty");
                     etLogin.requestFocus();
@@ -80,7 +79,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
-
 
     @Override
     public void onBackPressed() {

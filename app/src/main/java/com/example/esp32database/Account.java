@@ -1,22 +1,14 @@
 package com.example.esp32database;
 
 public class Account {
-    private String name;
     private String login;
+    private String name;
     private String password;
 
     public Account(String name, String login, String password) {
-        this.name = name;
         this.login = login;
-        this.password = password;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
         this.name = name;
+        this.password = password;
     }
 
     public String getLogin() {
@@ -27,6 +19,14 @@ public class Account {
         this.login = login;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getPassword() {
         return password;
     }
@@ -35,3 +35,4 @@ public class Account {
         this.password = password;
     }
 }
+
