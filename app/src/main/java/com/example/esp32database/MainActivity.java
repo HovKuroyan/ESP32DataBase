@@ -4,7 +4,6 @@ import static android.content.ContentValues.TAG;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SwitchCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -16,11 +15,11 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.esp32database.DB.DataBaseHelper;
@@ -42,13 +41,16 @@ public class MainActivity extends AppCompatActivity {
     private List<Alarm> alarms;
     private AlarmAdapter alarmAdapter;
     private ProgressBar progressBar;
+    boolean isOn = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Button btn = findViewById(R.id.btn);
+
+
         FloatingActionButton btnConfig = findViewById(R.id.btnConfig);
-        SwitchCompat alarmSwitch = findViewById(R.id.mySwitch);
         Spinner alarmTypeSpinner = findViewById(R.id.alarm_type_spinner);
         DataBaseHelper dbHelper = new DataBaseHelper(this);
         List<Result> res = dbHelper.getResults();        //log
@@ -78,6 +80,21 @@ public class MainActivity extends AppCompatActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_item, list);
         alarmTypeSpinner.setAdapter(adapter);
         alarmTypeSpinner.setSelection(0);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isOn = !isOn;
+                mDatabase.child("isOn").setValue(isOn);
+                Alarm al = new Alarm((String) DateFormat.format("hh:mm:ss a", new Date()),
+                        alarmTypeSpinner.getSelectedItem().toString(), isOn ? "On" : "Off");
+                alarms.add(al);
+                for (int i = 0; i < alarms.size(); i++) {
+                    databaseReference.child(String.valueOf(i)).setValue(alarms.get(i));
+                }
+                setChecked(btn, isOn);
+            }
+        });
+
         //log
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
@@ -98,19 +115,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //Switch
-        alarmSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                mDatabase.child("isOn").setValue(isChecked);
-                Alarm al = new Alarm((String) DateFormat.format("hh:mm:ss a", new Date()),
-                        alarmTypeSpinner.getSelectedItem().toString(), isChecked ? "On" : "Off");
-                alarms.add(al);
-                for (int i = 0; i < alarms.size(); i++) {
-                    databaseReference.child(String.valueOf(i)).setValue(alarms.get(i));
-                }
-            }
-        });
 
         //Spinner
         alarmTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -128,12 +132,11 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mDatabase.addValueEventListener(new ValueEventListener() {
-
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 Boolean switchState = snapshot.child("isOn").getValue(Boolean.class);
                 if (switchState != null) {
-                    alarmSwitch.setChecked(switchState);
+                    setChecked(btn, switchState);
                 }
                 String alarmType = snapshot.child("type").getValue(String.class);
                 alarmTypeSpinner.setSelection(getIndex(alarmTypeSpinner, alarmType));
@@ -162,5 +165,15 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return index;
+    }
+
+    private void setChecked(Button btn, Boolean isChecked) {
+        if (!isChecked) {
+            btn.setBackground(getResources().getDrawable(R.drawable.button_on_bg));
+            btn.setText("On");
+        } else {
+            btn.setBackground(getResources().getDrawable(R.drawable.button_off_bg));
+            btn.setText("Off");
+        }
     }
 }

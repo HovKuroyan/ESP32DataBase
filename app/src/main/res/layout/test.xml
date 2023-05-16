@@ -19,10 +19,10 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/button"
+        android:id="@+id/btn"
         android:layout_width="153dp"
         android:layout_height="149dp"
-        android:background="@drawable/button_bg"
+        android:background="@drawable/button_on_bg"
         android:text="ON"
         android:textSize="48sp"
         app:layout_constraintBottom_toTopOf="@+id/constraintLayout"
