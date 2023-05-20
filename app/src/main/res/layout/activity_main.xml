@@ -10,12 +10,15 @@
 
     <Spinner
         android:id="@+id/alarm_type_spinner"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:backgroundTint="@color/black"
         android:minHeight="48dp"
+        android:popupBackground="@color/gray"
+        app:layout_constraintEnd_toStartOf="@+id/btnConfig"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.appcompat.widget.AppCompatButton
@@ -32,21 +35,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/alarm_type_spinner" />
 
-    <Switch
-        android:id="@+id/mySwitch"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Switch"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/alarm_type_spinner" />
-
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btnConfig"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:clickable="true"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/mySwitch"
+        app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/blue_fill__rounded_color" />
 
     <androidx.constraintlayout.widget.ConstraintLayout

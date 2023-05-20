@@ -7,6 +7,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -41,7 +43,8 @@ public class MainActivity extends AppCompatActivity {
     private List<Alarm> alarms;
     private AlarmAdapter alarmAdapter;
     private ProgressBar progressBar;
-    boolean isOn = false;
+    static boolean isOn = false;
+    AlertDialog.Builder builder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,18 +52,20 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Button btn = findViewById(R.id.btn);
 
-
         FloatingActionButton btnConfig = findViewById(R.id.btnConfig);
         Spinner alarmTypeSpinner = findViewById(R.id.alarm_type_spinner);
+        recyclerView = findViewById(R.id.recyclerView);
+        progressBar = findViewById(R.id.progressBar);
+
         DataBaseHelper dbHelper = new DataBaseHelper(this);
         List<Result> res = dbHelper.getResults();        //log
-        recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        progressBar = findViewById(R.id.progressBar);
         progressBar.setVisibility(View.VISIBLE);
         accounts = FirebaseDatabase.getInstance().getReference("accounts");
-        Account account = new Account("AvagDproc", "avagdproc@mail.ru", "12345678");
+
+        Account account = new Account( "avagdproc@mail.ru", "12345678");
         accounts.child("1").setValue(account);
+
         databaseReference = FirebaseDatabase.getInstance().getReference("alarms").child("alarms-school-1").child("history");
         mDatabase = FirebaseDatabase.getInstance().getReference("alarms").child("alarms-school-1").child("my-alarm");
 
@@ -68,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
         alarmAdapter = new AlarmAdapter(alarms, databaseReference);
 
         recyclerView.setAdapter(alarmAdapter);
+
         //check is db empty or stay in is checked
         if (res.isEmpty()) {
             dbHelper.insertResult(new Result(1, "", "", "", 0));
@@ -80,18 +86,53 @@ public class MainActivity extends AppCompatActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_item, list);
         alarmTypeSpinner.setAdapter(adapter);
         alarmTypeSpinner.setSelection(0);
+        builder = new AlertDialog.Builder(this);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 isOn = !isOn;
-                mDatabase.child("isOn").setValue(isOn);
-                Alarm al = new Alarm((String) DateFormat.format("hh:mm:ss a", new Date()),
-                        alarmTypeSpinner.getSelectedItem().toString(), isOn ? "On" : "Off");
-                alarms.add(al);
-                for (int i = 0; i < alarms.size(); i++) {
-                    databaseReference.child(String.valueOf(i)).setValue(alarms.get(i));
+                if (isOn) {
+                    alarmTypeSpinner.setClickable(false);
+                    alarmTypeSpinner.setEnabled(false);
+                    builder.setMessage("Вы точно хотите включить сигнализацию?")
+                            .setCancelable(false)
+                            .setPositiveButton("Да", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    setChecked(btn, isOn);
+                                    mDatabase.child("isOn").setValue(isOn);
+                                    Alarm al = new Alarm((String) DateFormat.format("hh:mm:ss a", new Date()),
+                                            alarmTypeSpinner.getSelectedItem().toString(), isOn ? "On" : "Off");
+                                    alarms.add(al);
+                                    for (int i = 0; i < alarms.size(); i++) {
+                                        databaseReference.child(String.valueOf(i)).setValue(alarms.get(i));
+                                    }
+                                    Toast.makeText(MainActivity.this, "Alarm is turned on", Toast.LENGTH_SHORT).show();
+                                }
+                            })
+                            .setNegativeButton("Нет", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    //  Action for 'NO' Button
+                                    isOn = !isOn;
+                                    dialog.cancel();
+                                }
+                            });
+
+                    AlertDialog alert = builder.create();
+                    alert.setTitle(R.string.app_name);
+                    alert.show();
+                } else {
+                    alarmTypeSpinner.setClickable(true);
+                    alarmTypeSpinner.setEnabled(true);
+                    isOn = false;
+                    mDatabase.child("isOn").setValue(isOn);
+                    Alarm al = new Alarm((String) DateFormat.format("hh:mm:ss a", new Date()),
+                            alarmTypeSpinner.getSelectedItem().toString(), isOn ? "On" : "Off");
+                    alarms.add(al);
+                    for (int i = 0; i < alarms.size(); i++) {
+                        databaseReference.child(String.valueOf(i)).setValue(alarms.get(i));
+                    }
+                    setChecked(btn, false);
                 }
-                setChecked(btn, isOn);
             }
         });
 
@@ -114,7 +155,6 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-
 
         //Spinner
         alarmTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
