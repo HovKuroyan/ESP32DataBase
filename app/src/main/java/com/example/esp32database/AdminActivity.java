@@ -25,8 +25,6 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.esp32database.DB.DataBaseHelper;
-import com.example.esp32database.DB.Result;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -58,6 +56,11 @@ public class AdminActivity extends AppCompatActivity {
 
 
     @Override
+    public void onBackPressed() {
+        //ignored
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin);
@@ -68,8 +71,6 @@ public class AdminActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.admin_recycler_view);
         progressBar = findViewById(R.id.admin_progress_bar);
 
-        DataBaseHelper dbHelper = new DataBaseHelper(this);
-        List<Result> res = dbHelper.getResults();        //log
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         progressBar.setVisibility(View.VISIBLE);
 

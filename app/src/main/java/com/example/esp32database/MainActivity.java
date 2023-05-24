@@ -15,8 +15,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.esp32database.DB.DataBaseHelper;
-import com.example.esp32database.DB.Result;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -33,14 +31,12 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.List;
-
 
 public class MainActivity extends AppCompatActivity {
     EditText etEmail, etPassword;
     TextView loginBtn;
     String email, password;
-    CheckBox stayIn;
+    CheckBox stayInCB;
     private FirebaseAuth firebaseAuth;
 
     @Override
@@ -50,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
         etEmail = findViewById(R.id.username_input);
         etPassword = findViewById(R.id.pass);
         loginBtn = findViewById(R.id.loginBtn);
-        stayIn = findViewById(R.id.stayIn);
+        stayInCB = findViewById(R.id.stayIn);
         DatabaseReference accounts = FirebaseDatabase.getInstance().getReference("accounts");
         firebaseAuth = FirebaseAuth.getInstance();
 
@@ -59,6 +55,8 @@ public class MainActivity extends AppCompatActivity {
         if (stayIn == 1){
             loadCredentials();
         }
+
+        Toast.makeText(this, String.valueOf(stayIn), Toast.LENGTH_SHORT).show();
 
         accounts.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -104,10 +102,10 @@ public class MainActivity extends AppCompatActivity {
         String savedEmail = sharedPreferences.getString("email", "");
         String savedPassword = sharedPreferences.getString("password", "");
 
-        // Use the retrieved values as needed
-        etEmail.setText(savedEmail);
-        etPassword.setText(savedPassword);
-        loginBtn.performClick();
+//        // Use the retrieved values as needed
+//        etEmail.setText(savedEmail);
+//        etPassword.setText(savedPassword);
+        loginUser(savedEmail, savedPassword);
     }
 
     private void checkAdminRole(String uid) {
@@ -158,12 +156,13 @@ public class MainActivity extends AppCompatActivity {
 
                             SharedPreferences sharedPreferences = getSharedPreferences("my_preferences", Context.MODE_PRIVATE);
                             SharedPreferences.Editor editor = sharedPreferences.edit();
-                            if (stayIn.isChecked()) {
+                            if (stayInCB.isChecked()) {
                                 editor.putInt("stayIn", 1);
                                 saveCredentials(email, password);
                             } else {
                                 editor.putInt("stayIn", 0);
                             }
+                            editor.apply();
                         } else {
                             // Login failed
                             Toast.makeText(MainActivity.this, "Login failed. Please try again.", Toast.LENGTH_SHORT).show();
