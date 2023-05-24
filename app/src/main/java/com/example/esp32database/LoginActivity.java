@@ -35,7 +35,6 @@ public class LoginActivity extends AppCompatActivity {
     DataBaseHelper dbHelper;
     CheckBox stayIn;
     List<Result> res;
-    long count = 0;
     private FirebaseAuth firebaseAuth;
 
     @Override
@@ -70,11 +69,6 @@ public class LoginActivity extends AppCompatActivity {
                 email = etEmail.getText().toString();
                 password = etPassword.getText().toString();
 
-                //TODO write code here
-                for (int i = 1; i <= count; i++) {
-//                    if (accounts.child(String.valueOf(i)))
-                }
-
                 if (TextUtils.isEmpty(email)) {
                     etEmail.setError("Email cannot be empty");
                     etEmail.requestFocus();
@@ -100,7 +94,7 @@ public class LoginActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             // Login successful
                             FirebaseUser user = firebaseAuth.getCurrentUser();
-                            LoginActivity.super.finish();
+                            finish();
                         } else {
                             // Login failed
                             Toast.makeText(LoginActivity.this, "Login failed. Please try again.", Toast.LENGTH_SHORT).show();

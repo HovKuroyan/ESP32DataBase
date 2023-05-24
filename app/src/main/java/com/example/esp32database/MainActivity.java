@@ -22,11 +22,13 @@ import android.widget.CompoundButton;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.esp32database.DB.DataBaseHelper;
 import com.example.esp32database.DB.Result;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -34,6 +36,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -45,6 +49,13 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     static boolean isOn = false;
     AlertDialog.Builder builder;
+    private FirebaseAuth firebaseAuth;
+    TextView tvSchool;
+    boolean[] selectedSchool;
+    List<Integer> schoolList = new ArrayList<>();
+    boolean isAllSelected = false;
+    String[] schoolArray = {"School 1", "School 2", "Schoo  l 3"};
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,13 +72,15 @@ public class MainActivity extends AppCompatActivity {
         List<Result> res = dbHelper.getResults();        //log
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         progressBar.setVisibility(View.VISIBLE);
+
         accounts = FirebaseDatabase.getInstance().getReference("accounts");
 
-        Account account = new Account( "avagdproc@mail.ru", "12345678");
-        accounts.child("1").setValue(account);
+        firebaseAuth = FirebaseAuth.getInstance();
+        String uid = firebaseAuth.getCurrentUser().getUid();
 
-        databaseReference = FirebaseDatabase.getInstance().getReference("alarms").child("alarms-school-1").child("history");
-        mDatabase = FirebaseDatabase.getInstance().getReference("alarms").child("alarms-school-1").child("my-alarm");
+        databaseReference = FirebaseDatabase.getInstance().getReference("alarms").child(uid).child("history");
+
+        mDatabase = FirebaseDatabase.getInstance().getReference("alarms").child(uid).child("my-alarm");
 
         alarms = new ArrayList<>();
         alarmAdapter = new AlarmAdapter(alarms, databaseReference);
@@ -195,6 +208,85 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, ConfigActivity.class));
             }
         });
+
+
+        tvSchool = findViewById(R.id.select_schools);
+        selectedSchool = new boolean[schoolArray.length];
+        tvSchool.setTextColor(Color.BLACK);
+
+        Arrays.fill(selectedSchool, true);
+        for (int i = 0; i < schoolArray.length; i++) {
+            schoolList.add(i);
+        }
+        tvSchool.setText("All");
+
+        tvSchool.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                customSwitch();
+            }
+        });
+
+    }
+    private void customSwitch() {
+        isAllSelected = true;
+
+
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(MainActivity.this);
+
+        builder.setTitle("Select school")
+                .setMultiChoiceItems(schoolArray, selectedSchool, new DialogInterface.OnMultiChoiceClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                        selectedSchool[which] = isChecked; // Update selectedSchool array at the clicked position
+                        if (isChecked) {
+                            schoolList.add(which);
+                            Collections.sort(schoolList);
+                        } else {
+                            schoolList.remove(Integer.valueOf(which)); // Remove the clicked position from schoolList
+                        }
+                    }
+                })
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        StringBuilder stringBuilder = new StringBuilder();
+                        for (int i = 0; i < schoolList.size(); i++) {
+                            stringBuilder.append(schoolArray[schoolList.get(i)]);
+                            if (i != schoolList.size() - 1) {
+                                stringBuilder.append(", ");
+                            }
+                        }
+                        for (boolean i : selectedSchool) {
+                            if (!i) {
+                                isAllSelected = false;
+                                break;
+                            }
+                        }
+                        if (isAllSelected) {
+                            tvSchool.setText("All");
+                        } else {
+                            tvSchool.setText(stringBuilder.toString());
+                        }
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .setNeutralButton("Clear All", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Arrays.fill(selectedSchool, false);
+                        schoolList.clear();
+                        tvSchool.setText("");
+                    }
+                });
+
+        builder.show();
     }
 
     private int getIndex(Spinner spinner, String myString) {
