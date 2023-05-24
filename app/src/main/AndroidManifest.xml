@@ -12,7 +12,13 @@
         android:theme="@style/Theme.ESP32DataBase"
         tools:targetApi="31">
         <activity
-            android:name=".LoginActivity"
+            android:name=".UserActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AdminActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DeveloperActivity"
             android:exported="false" />
         <activity
             android:name=".ConfigActivity"
