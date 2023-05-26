@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
     String email, password;
     CheckBox stayInCB;
     private FirebaseAuth firebaseAuth;
+    ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,12 +49,16 @@ public class MainActivity extends AppCompatActivity {
         etPassword = findViewById(R.id.pass);
         loginBtn = findViewById(R.id.loginBtn);
         stayInCB = findViewById(R.id.stayIn);
+        progressBar = findViewById(R.id.loginProgressBar);
+        progressBar.getBackground().setAlpha(50);
+        progressBar.setVisibility(View.INVISIBLE);
+
         DatabaseReference accounts = FirebaseDatabase.getInstance().getReference("accounts");
         firebaseAuth = FirebaseAuth.getInstance();
 
         SharedPreferences sharedPreferences = getSharedPreferences("my_preferences", Context.MODE_PRIVATE);
         int stayIn = sharedPreferences.getInt("stayIn", 0);
-        if (stayIn == 1){
+        if (stayIn == 1) {
             loadCredentials();
         }
 
@@ -101,10 +107,6 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = getSharedPreferences("my_preferences", Context.MODE_PRIVATE);
         String savedEmail = sharedPreferences.getString("email", "");
         String savedPassword = sharedPreferences.getString("password", "");
-
-//        // Use the retrieved values as needed
-//        etEmail.setText(savedEmail);
-//        etPassword.setText(savedPassword);
         loginUser(savedEmail, savedPassword);
     }
 
@@ -142,6 +144,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loginUser(String email, String password) {
+        progressBar.setVisibility(View.VISIBLE);
+
         email.trim();
         password.trim();
 

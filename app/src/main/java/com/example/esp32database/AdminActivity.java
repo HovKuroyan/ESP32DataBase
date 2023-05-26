@@ -25,19 +25,33 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class AdminActivity extends AppCompatActivity {
     private DatabaseReference mDatabase, databaseReference;
@@ -53,7 +67,10 @@ public class AdminActivity extends AppCompatActivity {
     List<Integer> schoolList = new ArrayList<>();
     boolean isAllSelected = false;
     String[] schoolArray = {"School 1", "School 2", "School 3"};
-
+    FirebaseFirestore db;
+    List<String> schoolNames, usersUid;
+    Spinner schoolNamesSpinner;
+    String uid, logUID;
 
     @Override
     public void onBackPressed() {
@@ -66,8 +83,15 @@ public class AdminActivity extends AppCompatActivity {
         setContentView(R.layout.activity_admin);
         Button btn = findViewById(R.id.admin_btn);
 
+        schoolNames = new ArrayList<>();
+
+        FirebaseApp.initializeApp(this); // Initialize Firebase
+        db = FirebaseFirestore.getInstance(); // Get Firestore instance
+
+
         FloatingActionButton btnConfig = findViewById(R.id.admin_btn_config);
         Spinner alarmTypeSpinner = findViewById(R.id.admin_alarm_type_spinner);
+        schoolNamesSpinner = findViewById(R.id.school_names_spinner);
         recyclerView = findViewById(R.id.admin_recycler_view);
         progressBar = findViewById(R.id.admin_progress_bar);
 
@@ -76,11 +100,11 @@ public class AdminActivity extends AppCompatActivity {
 
 
         firebaseAuth = FirebaseAuth.getInstance();
-        String uid = firebaseAuth.getCurrentUser().getUid();
+        String currentUid = firebaseAuth.getCurrentUser().getUid();
 
-        databaseReference = FirebaseDatabase.getInstance().getReference("alarms").child(uid).child("history");
+//        databaseReference = FirebaseDatabase.getInstance().getReference("alarms").child(currentUid).child("history");
 
-        mDatabase = FirebaseDatabase.getInstance().getReference("alarms").child(uid).child("my-alarm");
+        mDatabase = FirebaseDatabase.getInstance().getReference("alarms").child(currentUid).child("my-alarm");
 
         alarms = new ArrayList<>();
         alarmAdapter = new AlarmAdapter(alarms, databaseReference);
@@ -88,11 +112,12 @@ public class AdminActivity extends AppCompatActivity {
         recyclerView.setAdapter(alarmAdapter);
 
 
-
         String[] list = getResources().getStringArray(R.array.alarm_types);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_item, list);
         alarmTypeSpinner.setAdapter(adapter);
         alarmTypeSpinner.setSelection(0);
+
+
         builder = new AlertDialog.Builder(this);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -143,32 +168,16 @@ public class AdminActivity extends AppCompatActivity {
             }
         });
 
-        //log
-        databaseReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                progressBar.setVisibility(View.GONE);
-                alarms.clear();
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    Alarm alarm = dataSnapshot.getValue(Alarm.class);
-                    alarms.add(alarm);
-                }
-                recyclerView.scrollToPosition(alarmAdapter.getItemCount() - 1);
-                alarmAdapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(AdminActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+        if (logUID == null) {
+            logUID = currentUid;
+        }
+        log(logUID);
 
         //Spinner
         alarmTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String selectedType = parent.getItemAtPosition(position).toString();
-//                ((TextView) parent.getChildAt(0)).setTextColor(Color.BLUE);
                 mDatabase.child("type").setValue(selectedType);
             }
 
@@ -178,6 +187,28 @@ public class AdminActivity extends AppCompatActivity {
             }
         });
 
+        //TODO finish code here
+        alarmTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedName = parent.getItemAtPosition(position).toString();
+                for (int i = 0; i < schoolNames.size(); i++) {
+                    if (schoolNames.get(i) == selectedName) {  // This line causes the NullPointerException
+                        logUID = usersUid.get(i);
+                        break;
+                    }
+                }
+                log(logUID);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Do nothing
+            }
+        });
+
+
+// switch listener
         mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -205,13 +236,7 @@ public class AdminActivity extends AppCompatActivity {
 
 
         tvSchool = findViewById(R.id.admin_select_schools);
-        selectedSchool = new boolean[schoolArray.length];
         tvSchool.setTextColor(Color.BLACK);
-
-        Arrays.fill(selectedSchool, true);
-        for (int i = 0; i < schoolArray.length; i++) {
-            schoolList.add(i);
-        }
         tvSchool.setText("All");
 
         tvSchool.setOnClickListener(new View.OnClickListener() {
@@ -221,7 +246,32 @@ public class AdminActivity extends AppCompatActivity {
             }
         });
 
+        readSchoolNames();
     }
+    private void log(String uid){
+        databaseReference = FirebaseDatabase.getInstance().getReference("alarms").child(uid).child("history");
+
+        //log
+        databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                progressBar.setVisibility(View.GONE);
+                alarms.clear();
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    Alarm alarm = dataSnapshot.getValue(Alarm.class);
+                    alarms.add(alarm);
+                }
+                recyclerView.scrollToPosition(alarmAdapter.getItemCount() - 1);
+                alarmAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(AdminActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void customSwitch() {
         isAllSelected = true;
 
@@ -301,5 +351,51 @@ public class AdminActivity extends AppCompatActivity {
             btn.setBackground(getResources().getDrawable(R.drawable.button_off_bg));
             btn.setText("Off");
         }
+    }
+
+    private void readSchoolNames() {
+        usersUid = new ArrayList<>();
+        CollectionReference schoolsCollection = db.collection("users");
+
+        schoolsCollection.get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+                            String schoolName = documentSnapshot.getString("name");
+                            String uid = documentSnapshot.getString("uid");
+                            String isAlarm = documentSnapshot.getString("isAlarm");
+                            if (Objects.equals(isAlarm, "true")) {
+                                usersUid.add(uid);
+                                schoolNames.add(schoolName);
+                            }
+                        }
+                        schoolArray = new String[schoolNames.size()];
+
+                        for (int i = 0; i < schoolNames.size(); i++) {
+                            schoolArray[i] = schoolNames.get(i);
+                        }
+
+                        selectedSchool = new boolean[schoolArray.length];
+                        tvSchool.setTextColor(Color.BLACK);
+
+                        Arrays.fill(selectedSchool, true);
+                        for (int i = 0; i < schoolArray.length; i++) {
+                            schoolList.add(i);
+                        }
+                        tvSchool.setText("All");
+
+                        ArrayAdapter<String> adapter2 = new ArrayAdapter<>(AdminActivity.this, R.layout.spinner_item, schoolNames);
+                        schoolNamesSpinner.setAdapter(adapter2);
+                        schoolNamesSpinner.setSelection(0);
+                        Toast.makeText(AdminActivity.this, "Success", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, "Error retrieving school names", e);
+                    }
+                });
     }
 }
