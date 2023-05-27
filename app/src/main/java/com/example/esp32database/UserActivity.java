@@ -29,6 +29,8 @@ import android.widget.Toast;
 
 import com.example.esp32database.DB.DataBaseHelper;
 import com.example.esp32database.DB.Result;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -36,6 +38,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -76,8 +81,6 @@ public class UserActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progressBar);
 
-        DataBaseHelper dbHelper = new DataBaseHelper(this);
-        List<Result> res = dbHelper.getResults();        //log
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         progressBar.setVisibility(View.VISIBLE);
 
@@ -100,6 +103,9 @@ public class UserActivity extends AppCompatActivity {
         alarmTypeSpinner.setAdapter(adapter);
         alarmTypeSpinner.setSelection(0);
         builder = new AlertDialog.Builder(this);
+
+
+        //TODO
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -119,6 +125,25 @@ public class UserActivity extends AppCompatActivity {
                                     for (int i = 0; i < alarms.size(); i++) {
                                         databaseReference.child(String.valueOf(i)).setValue(alarms.get(i));
                                     }
+
+                                    //add log to history
+                                    FirebaseFirestore db = FirebaseFirestore.getInstance();
+                                    CollectionReference usersRef = db.collection("history");
+                                    DocumentReference userRef = usersRef.document(uid);
+                                    userRef.set(al).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void unused) {
+
+                                        }
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            // Failed to set user role
+                                            Toast.makeText(UserActivity.this, "Failed to save log.", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+
+
                                     Toast.makeText(UserActivity.this, "Alarm is turned on", Toast.LENGTH_SHORT).show();
                                 }
                             })
@@ -145,6 +170,23 @@ public class UserActivity extends AppCompatActivity {
                         databaseReference.child(String.valueOf(i)).setValue(alarms.get(i));
                     }
                     setChecked(btn, false);
+
+                    //add log to history
+                    FirebaseFirestore db = FirebaseFirestore.getInstance();
+                    CollectionReference usersRef = db.collection("history");
+                    DocumentReference userRef = usersRef.document(uid);
+                    userRef.set(al).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void unused) {
+
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            // Failed to set user role
+                            Toast.makeText(UserActivity.this, "Failed to save log.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
             }
         });

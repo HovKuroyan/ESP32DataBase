@@ -12,6 +12,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.telephony.SmsManager;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
@@ -25,6 +26,8 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.esp32database.DB.DataBaseHelper;
+import com.example.esp32database.DB.Result;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -131,6 +134,17 @@ public class AdminActivity extends AppCompatActivity {
                             .setPositiveButton("Да", new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int id) {
                                     setChecked(btn, isOn);
+                                    DataBaseHelper dbHelper = new DataBaseHelper(AdminActivity.this);
+                                    List<Result> res = dbHelper.getResults();
+
+                                    try {
+                                        SmsManager smgr = SmsManager.getDefault();
+                                        smgr.sendTextMessage(res.get(0).getSendText(), null, res.get(0).getSendText(), null, null);
+                                        Toast.makeText(AdminActivity.this, "SMS Sent Successfully", Toast.LENGTH_SHORT).show();
+                                    } catch (Exception e) {
+                                        Toast.makeText(AdminActivity.this, "SMS Failed to Send, Please try again", Toast.LENGTH_SHORT).show();
+                                    }
+
                                     mDatabase.child("isOn").setValue(isOn);
                                     Alarm al = new Alarm((String) DateFormat.format("hh:mm:ss a", new Date()),
                                             alarmTypeSpinner.getSelectedItem().toString(), isOn ? "On" : "Off");
@@ -248,19 +262,31 @@ public class AdminActivity extends AppCompatActivity {
 
         readSchoolNames();
     }
-    private void log(String uid){
-        databaseReference = FirebaseDatabase.getInstance().getReference("alarms").child(uid).child("history");
 
+    private void log(String uid) {
+        databaseReference = FirebaseDatabase.getInstance().getReference("alarms").child(uid).child("history");
+        databaseReference.child("0").setValue("log").addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void unused) {
+
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+
+            }
+        });
         //log
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 progressBar.setVisibility(View.GONE);
-                alarms.clear();
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    Alarm alarm = dataSnapshot.getValue(Alarm.class);
-                    alarms.add(alarm);
-                }
+
+//                alarms.clear();
+//                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+//                    Alarm alarm = dataSnapshot.getValue(Alarm.class);
+//                    alarms.add(alarm);
+//                }
                 recyclerView.scrollToPosition(alarmAdapter.getItemCount() - 1);
                 alarmAdapter.notifyDataSetChanged();
             }

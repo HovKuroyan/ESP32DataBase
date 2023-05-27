@@ -127,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
                                 } else {
                                     startActivity(new Intent(MainActivity.this, DeveloperActivity.class));
                                 }
+                                progressBar.setVisibility(View.GONE);
                             }
                         } else {
                             // User document does not exist
