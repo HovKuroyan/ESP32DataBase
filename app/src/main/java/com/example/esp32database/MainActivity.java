@@ -62,7 +62,6 @@ public class MainActivity extends AppCompatActivity {
             loadCredentials();
         }
 
-        Toast.makeText(this, String.valueOf(stayIn), Toast.LENGTH_SHORT).show();
 
         accounts.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -138,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
+                        progressBar.setVisibility(View.GONE);
                         // Failed to check admin role
                         Toast.makeText(MainActivity.this, "Failed to check admin role.", Toast.LENGTH_SHORT).show();
                     }

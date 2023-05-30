@@ -91,7 +91,7 @@ public class AdminActivity extends AppCompatActivity {
         FirebaseApp.initializeApp(this); // Initialize Firebase
         db = FirebaseFirestore.getInstance(); // Get Firestore instance
 
-
+        tvSchool = findViewById(R.id.admin_select_schools);
         FloatingActionButton btnConfig = findViewById(R.id.admin_btn_config);
         Spinner alarmTypeSpinner = findViewById(R.id.admin_alarm_type_spinner);
         schoolNamesSpinner = findViewById(R.id.school_names_spinner);
@@ -105,7 +105,7 @@ public class AdminActivity extends AppCompatActivity {
         firebaseAuth = FirebaseAuth.getInstance();
         String currentUid = firebaseAuth.getCurrentUser().getUid();
 
-//        databaseReference = FirebaseDatabase.getInstance().getReference("alarms").child(currentUid).child("history");
+//    databaseReference = FirebaseDatabase.getInstance().getReference("alarms").child(currentUid).child("history");
 
         mDatabase = FirebaseDatabase.getInstance().getReference("alarms").child(currentUid).child("my-alarm");
 
@@ -169,75 +169,47 @@ public class AdminActivity extends AppCompatActivity {
                 } else {
                     alarmTypeSpinner.setClickable(true);
                     alarmTypeSpinner.setEnabled(true);
-                    isOn = false;
-                    mDatabase.child("isOn").setValue(isOn);
-                    Alarm al = new Alarm((String) DateFormat.format("hh:mm:ss a", new Date()),
-                            alarmTypeSpinner.getSelectedItem().toString(), isOn ? "On" : "Off");
-                    alarms.add(al);
-                    for (int i = 0; i < alarms.size(); i++) {
-                        databaseReference.child(String.valueOf(i)).setValue(alarms.get(i));
-                    }
-                    setChecked(btn, false);
+                    isOn = !isOn;
+                    alarmTypeSpinner.setClickable(true);
+                    alarmTypeSpinner.setEnabled(true);
+                    builder.setMessage("Вы точно хотите выключить сигнализацию?")
+                            .setCancelable(false)
+                            .setPositiveButton("Да", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    setChecked(btn, isOn);
+                                    DataBaseHelper dbHelper = new DataBaseHelper(AdminActivity.this);
+                                    List<Result> res = dbHelper.getResults();
+
+                                    try {
+                                        SmsManager smgr = SmsManager.getDefault();
+                                        smgr.sendTextMessage(res.get(0).getSendText(), null, res.get(0).getSendText(), null, null);
+                                        Toast.makeText(AdminActivity.this, "SMS Sent Successfully", Toast.LENGTH_SHORT).show();
+                                    } catch (Exception e) {
+                                        Toast.makeText(AdminActivity.this, "SMS Failed to Send, Please try again", Toast.LENGTH_SHORT).show();
+                                    }
+
+                                    mDatabase.child("isOn").setValue(isOn);
+                                    Alarm al = new Alarm((String) DateFormat.format("hh:mm:ss a", new Date()),
+                                            alarmTypeSpinner.getSelectedItem().toString(), isOn ? "On" : "Off");
+                                    alarms.add(al);
+                                    for (int i = 0; i < alarms.size(); i++) {
+                                        databaseReference.child(String.valueOf(i)).setValue(alarms.get(i));
+                                    }
+                                    Toast.makeText(AdminActivity.this, "Alarm is turned off", Toast.LENGTH_SHORT).show();
+                                }
+                            })
+                            .setNegativeButton("Нет", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    //  Action for 'NO' Button
+                                    isOn = !isOn;
+                                    dialog.cancel();
+                                }
+                            });
+
+                    AlertDialog alert = builder.create();
+                    alert.setTitle(R.string.app_name);
+                    alert.show();
                 }
-            }
-        });
-
-        if (logUID == null) {
-            logUID = currentUid;
-        }
-        log(logUID);
-
-        //Spinner
-        alarmTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selectedType = parent.getItemAtPosition(position).toString();
-                mDatabase.child("type").setValue(selectedType);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Do nothing
-            }
-        });
-
-        //TODO finish code here
-        alarmTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selectedName = parent.getItemAtPosition(position).toString();
-                for (int i = 0; i < schoolNames.size(); i++) {
-                    if (schoolNames.get(i) == selectedName) {  // This line causes the NullPointerException
-                        logUID = usersUid.get(i);
-                        break;
-                    }
-                }
-                log(logUID);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Do nothing
-            }
-        });
-
-
-// switch listener
-        mDatabase.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Boolean switchState = snapshot.child("isOn").getValue(Boolean.class);
-                if (switchState != null) {
-                    setChecked(btn, switchState);
-                }
-                String alarmType = snapshot.child("type").getValue(String.class);
-                alarmTypeSpinner.setSelection(getIndex(alarmTypeSpinner, alarmType));
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                // Failed to read value
-                Log.w(TAG, "Failed to read value.", error.toException());
             }
         });
 
@@ -248,15 +220,22 @@ public class AdminActivity extends AppCompatActivity {
             }
         });
 
-
-        tvSchool = findViewById(R.id.admin_select_schools);
-        tvSchool.setTextColor(Color.BLACK);
-        tvSchool.setText("All");
-
-        tvSchool.setOnClickListener(new View.OnClickListener() {
+        schoolNamesSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onClick(View v) {
-                customSwitch();
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedName = parent.getItemAtPosition(position).toString();
+                for (int i = 0; i < schoolNames.size(); i++) {
+                    if (schoolNames.get(i).equals(selectedName)) {  // This line causes the NullPointerException
+                        logUID = usersUid.get(i);
+                        break;
+                    }
+                }
+                log(logUID);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                Toast.makeText(AdminActivity.this, "Nothing", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -265,30 +244,26 @@ public class AdminActivity extends AppCompatActivity {
 
     private void log(String uid) {
         databaseReference = FirebaseDatabase.getInstance().getReference("alarms").child(uid).child("history");
-        databaseReference.child("0").setValue("log").addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void unused) {
-
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-
-            }
-        });
         //log
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 progressBar.setVisibility(View.GONE);
 
-//                alarms.clear();
-//                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-//                    Alarm alarm = dataSnapshot.getValue(Alarm.class);
-//                    alarms.add(alarm);
-//                }
+                alarms.clear();
+                try {
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                        Alarm alarm = dataSnapshot.getValue(Alarm.class);
+                        alarms.add(alarm);
+                    }
+                } catch (RuntimeException e) {
+                    Toast.makeText(AdminActivity.this, "Err", Toast.LENGTH_SHORT).show();
+                }
                 recyclerView.scrollToPosition(alarmAdapter.getItemCount() - 1);
                 alarmAdapter.notifyDataSetChanged();
+                alarmAdapter = new AlarmAdapter(alarms, databaseReference);
+
+                recyclerView.setAdapter(alarmAdapter);
             }
 
             @Override
