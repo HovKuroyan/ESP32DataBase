@@ -4,6 +4,7 @@ import static android.content.ContentValues.TAG;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -92,7 +93,7 @@ public class AdminActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance(); // Get Firestore instance
 
         tvSchool = findViewById(R.id.admin_select_schools);
-        FloatingActionButton btnConfig = findViewById(R.id.admin_btn_config);
+        AppCompatButton btnConfig = findViewById(R.id.admin_btn_config);
         Spinner alarmTypeSpinner = findViewById(R.id.admin_alarm_type_spinner);
         schoolNamesSpinner = findViewById(R.id.school_names_spinner);
         recyclerView = findViewById(R.id.admin_recycler_view);
@@ -105,9 +106,9 @@ public class AdminActivity extends AppCompatActivity {
         firebaseAuth = FirebaseAuth.getInstance();
         String currentUid = firebaseAuth.getCurrentUser().getUid();
 
+
 //    databaseReference = FirebaseDatabase.getInstance().getReference("alarms").child(currentUid).child("history");
 
-        mDatabase = FirebaseDatabase.getInstance().getReference("alarms").child(currentUid).child("my-alarm");
 
         alarms = new ArrayList<>();
         alarmAdapter = new AlarmAdapter(alarms, databaseReference);
@@ -125,93 +126,136 @@ public class AdminActivity extends AppCompatActivity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                isOn = !isOn;
-                if (isOn) {
-                    alarmTypeSpinner.setClickable(false);
-                    alarmTypeSpinner.setEnabled(false);
-                    builder.setMessage("Вы точно хотите включить сигнализацию?")
-                            .setCancelable(false)
-                            .setPositiveButton("Да", new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    setChecked(btn, isOn);
-                                    DataBaseHelper dbHelper = new DataBaseHelper(AdminActivity.this);
-                                    List<Result> res = dbHelper.getResults();
-
-                                    try {
-                                        SmsManager smgr = SmsManager.getDefault();
-                                        smgr.sendTextMessage(res.get(0).getSendText(), null, res.get(0).getSendText(), null, null);
-                                        Toast.makeText(AdminActivity.this, "SMS Sent Successfully", Toast.LENGTH_SHORT).show();
-                                    } catch (Exception e) {
-                                        Toast.makeText(AdminActivity.this, "SMS Failed to Send, Please try again", Toast.LENGTH_SHORT).show();
-                                    }
-
-                                    mDatabase.child("isOn").setValue(isOn);
-                                    Alarm al = new Alarm((String) DateFormat.format("hh:mm:ss a", new Date()),
-                                            alarmTypeSpinner.getSelectedItem().toString(), isOn ? "On" : "Off");
-                                    alarms.add(al);
-                                    for (int i = 0; i < alarms.size(); i++) {
-                                        databaseReference.child(String.valueOf(i)).setValue(alarms.get(i));
-                                    }
-                                    Toast.makeText(AdminActivity.this, "Alarm is turned on", Toast.LENGTH_SHORT).show();
-                                }
-                            })
-                            .setNegativeButton("Нет", new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    //  Action for 'NO' Button
-                                    isOn = !isOn;
-                                    dialog.cancel();
-                                }
-                            });
-
-                    AlertDialog alert = builder.create();
-                    alert.setTitle(R.string.app_name);
-                    alert.show();
-                } else {
-                    alarmTypeSpinner.setClickable(true);
-                    alarmTypeSpinner.setEnabled(true);
+                boolean isNothingSelected = true;
+                for (boolean i : selectedSchool) {
+                    if (i) {
+                        isNothingSelected = false;
+                        break;
+                    }
+                }
+                if (!isNothingSelected) {
                     isOn = !isOn;
-                    alarmTypeSpinner.setClickable(true);
-                    alarmTypeSpinner.setEnabled(true);
-                    builder.setMessage("Вы точно хотите выключить сигнализацию?")
-                            .setCancelable(false)
-                            .setPositiveButton("Да", new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    setChecked(btn, isOn);
-                                    DataBaseHelper dbHelper = new DataBaseHelper(AdminActivity.this);
-                                    List<Result> res = dbHelper.getResults();
+                    if (isOn) {
 
-                                    try {
-                                        SmsManager smgr = SmsManager.getDefault();
-                                        smgr.sendTextMessage(res.get(0).getSendText(), null, res.get(0).getSendText(), null, null);
-                                        Toast.makeText(AdminActivity.this, "SMS Sent Successfully", Toast.LENGTH_SHORT).show();
-                                    } catch (Exception e) {
-                                        Toast.makeText(AdminActivity.this, "SMS Failed to Send, Please try again", Toast.LENGTH_SHORT).show();
+                        builder.setMessage("Вы точно хотите включить сигнализацию?")
+                                .setCancelable(false)
+                                .setPositiveButton("Да", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        //turn off views
+                                        alarmTypeSpinner.setEnabled(false);
+                                        tvSchool.setEnabled(false);
+                                        schoolNamesSpinner.setEnabled(false);
+
+                                        setChecked(btn, isOn);
+//                                        DataBaseHelper dbHelper = new DataBaseHelper(AdminActivity.this);
+//                                        List<Result> res = dbHelper.getResults();
+
+//                                        try {
+//                                            SmsManager smgr = SmsManager.getDefault();
+//                                            smgr.sendTextMessage(res.get(0).getSendText(), null, res.get(0).getSendText(), null, null);
+//                                            Toast.makeText(AdminActivity.this, "SMS Sent Successfully", Toast.LENGTH_SHORT).show();
+//                                        } catch (Exception e) {
+//                                            Toast.makeText(AdminActivity.this, "SMS Failed to Send, Please try again", Toast.LENGTH_SHORT).show();
+//                                        }
+                                        int pos = 0;
+                                        for (int i = 0; i < schoolList.size(); i++) {
+                                            String name = schoolArray[schoolList.get(i)];
+                                            for (int j = 0; j < schoolNames.size(); j++) {
+                                                if (name == schoolNames.get(j)) {
+                                                    pos = j;
+                                                    break;
+                                                }
+                                            }
+                                            String uid = usersUid.get(pos);
+                                            mDatabase = FirebaseDatabase.getInstance().getReference("alarms").child(uid).child("my-alarm");
+                                            mDatabase.child("isOn").setValue(isOn);
+                                            Alarm al = new Alarm((String) DateFormat.format("hh:mm:ss a", new Date()),
+                                                    alarmTypeSpinner.getSelectedItem().toString(), isOn ? "On" : "Off");
+                                            alarms.add(al);
+
+
+                                            for (int f = 0; f < alarms.size() / i + 1; f++) {
+                                                FirebaseDatabase.getInstance().getReference("alarms").child(uid).child("history").child(String.valueOf(f)).setValue(alarms.get(f));
+                                            }
+                                        }
+
+                                        Toast.makeText(AdminActivity.this, "Alarm is turned on", Toast.LENGTH_SHORT).show();
                                     }
-
-                                    mDatabase.child("isOn").setValue(isOn);
-                                    Alarm al = new Alarm((String) DateFormat.format("hh:mm:ss a", new Date()),
-                                            alarmTypeSpinner.getSelectedItem().toString(), isOn ? "On" : "Off");
-                                    alarms.add(al);
-                                    for (int i = 0; i < alarms.size(); i++) {
-                                        databaseReference.child(String.valueOf(i)).setValue(alarms.get(i));
+                                })
+                                .setNegativeButton("Нет", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        //  Action for 'NO' Button
+                                        isOn = !isOn;
+                                        dialog.cancel();
                                     }
-                                    Toast.makeText(AdminActivity.this, "Alarm is turned off", Toast.LENGTH_SHORT).show();
-                                }
-                            })
-                            .setNegativeButton("Нет", new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    //  Action for 'NO' Button
-                                    isOn = !isOn;
-                                    dialog.cancel();
-                                }
-                            });
+                                });
 
-                    AlertDialog alert = builder.create();
-                    alert.setTitle(R.string.app_name);
-                    alert.show();
+                        AlertDialog alert = builder.create();
+                        alert.setTitle(R.string.app_name);
+                        alert.show();
+                    } else {
+
+                        builder.setMessage("Вы точно хотите выключить сигнализацию?")
+                                .setCancelable(false)
+                                .setPositiveButton("Да", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        //turn on views
+                                        alarmTypeSpinner.setEnabled(true);
+                                        tvSchool.setEnabled(true);
+                                        schoolNamesSpinner.setEnabled(true);
+
+                                        setChecked(btn, isOn);
+//                                        DataBaseHelper dbHelper = new DataBaseHelper(AdminActivity.this);
+//                                        List<Result> res = dbHelper.getResults();
+
+                                        //TODO fix message sending function
+
+//                                        try {
+//                                            SmsManager smgr = SmsManager.getDefault();
+//                                            smgr.sendTextMessage(res.get(0).getSendText(), null, res.get(0).getSendText(), null, null);
+//                                            Toast.makeText(AdminActivity.this, "SMS Sent Successfully", Toast.LENGTH_SHORT).show();
+//                                        } catch (Exception e) {
+//                                            Toast.makeText(AdminActivity.this, "SMS Failed to Send, Please try again", Toast.LENGTH_SHORT).show();
+//                                        }
+                                        int pos = 0;
+                                        for (int i = 0; i < schoolList.size(); i++) {
+                                            String name = schoolArray[schoolList.get(i)];
+                                            for (int j = 0; j < schoolNames.size(); j++) {
+                                                if (name == schoolNames.get(j)) {
+                                                    pos = j;
+                                                    break;
+                                                }
+                                            }
+                                            String uid = usersUid.get(pos);
+                                            mDatabase = FirebaseDatabase.getInstance().getReference("alarms").child(uid).child("my-alarm");
+                                            mDatabase.child("isOn").setValue(isOn);
+                                            Alarm al = new Alarm((String) DateFormat.format("hh:mm:ss a", new Date()),
+                                                    alarmTypeSpinner.getSelectedItem().toString(), isOn ? "On" : "Off");
+                                            alarms.add(al);
+                                            for (int f = 0; f < alarms.size() / i + 1; f++) {
+                                                FirebaseDatabase.getInstance().getReference("alarms").child(uid).child("history").child(String.valueOf(f)).setValue(alarms.get(f));
+                                            }
+                                        }
+                                    }
+                                })
+                                .setNegativeButton("Нет", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        //  Action for 'NO' Button
+                                        isOn = !isOn;
+                                        dialog.cancel();
+                                    }
+                                });
+
+                        AlertDialog alert = builder.create();
+                        alert.setTitle(R.string.app_name);
+                        alert.show();
+                    }
+                } else {
+                    Toast.makeText(AdminActivity.this, "Please select the schools", Toast.LENGTH_SHORT).show();
                 }
             }
         });
+
 
         btnConfig.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -238,7 +282,12 @@ public class AdminActivity extends AppCompatActivity {
                 Toast.makeText(AdminActivity.this, "Nothing", Toast.LENGTH_SHORT).show();
             }
         });
-
+        tvSchool.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                customSwitch();
+            }
+        });
         readSchoolNames();
     }
 
@@ -271,6 +320,7 @@ public class AdminActivity extends AppCompatActivity {
                 Toast.makeText(AdminActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+
     }
 
     private void customSwitch() {

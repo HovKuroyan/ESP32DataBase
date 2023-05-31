@@ -36,15 +36,15 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/admin_alarm_type_spinner" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/admin_btn_config"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:clickable="true"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@drawable/bell_icon"
         app:layout_constraintBottom_toTopOf="@+id/admin_select_schools"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/blue_fill__rounded_color" />
+        />
 
     <TextView
         android:id="@+id/admin_select_schools"
@@ -99,6 +99,9 @@
         android:id="@+id/school_names_spinner"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:backgroundTint="@color/black"
+        android:popupBackground="#fafafa"
         app:layout_constraintBottom_toTopOf="@+id/constraintLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

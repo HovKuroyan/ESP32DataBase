@@ -169,6 +169,8 @@ public class MainActivity extends AppCompatActivity {
                             }
                             editor.apply();
                         } else {
+                            progressBar.setVisibility(View.GONE);
+
                             // Login failed
                             Toast.makeText(MainActivity.this, "Login failed. Please try again.", Toast.LENGTH_SHORT).show();
                         }
