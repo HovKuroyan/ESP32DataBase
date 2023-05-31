@@ -4,78 +4,88 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#fafafa"
     android:padding="15dp"
     tools:context=".ConfigActivity">
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="10dp"
-        android:orientation="vertical">
-        <TextView
-            android:id="@+id/tvNumber"
+        android:layout_height="match_parent">
+
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/open_sans_bold"
-            android:text="Enter the bell number"
-            android:textColor="@android:color/black" />
+            android:layout_height="match_parent"
+            android:layout_marginTop="10dp"
+            android:orientation="vertical">
 
-        <EditText
-            android:id="@+id/etPhone"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:background="@drawable/text_input_bg"
-            android:ems="10"
-            android:fontFamily="@font/open_sans_bold"
-            android:hint="Input the number"
-            android:inputType="text"
-            android:minHeight="48dp"
-            android:textColor="@color/black"
-            android:textColorHint="@android:color/darker_gray" />
+            <TextView
+                android:id="@+id/tvNumber"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/open_sans_bold"
+                android:text="Введите номер МЧС"
+                android:textColor="@android:color/black" />
 
-        <TextView
-            android:id="@+id/tvText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
-            android:fontFamily="@font/open_sans_bold"
-            android:text="Enter the text"
-            android:textColor="@android:color/black" />
+            <EditText
+                android:id="@+id/etPhone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/text_input_bg"
+                android:ems="10"
+                android:fontFamily="@font/open_sans_bold"
+                android:hint="Введите номер"
+                android:inputType="text"
+                android:minHeight="48dp"
+                android:textColor="@color/black"
+                android:textColorHint="@android:color/darker_gray" />
 
-        <EditText
-            android:id="@+id/etText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:background="@drawable/text_input_bg"
-            android:ems="10"
-            android:fontFamily="@font/open_sans_bold"
-            android:hint="Input the text"
-            android:inputType="text"
-            android:minHeight="48dp"
-            android:textColor="@color/black"
-            android:textColorHint="@android:color/darker_gray" />
+            <Button
+                android:id="@+id/btnSave"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:fontFamily="@font/open_sans_bold"
+                android:text="Сохранить"
+                android:textAllCaps="false" />
 
-        <Button
-            android:id="@+id/btnSave"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
-            android:fontFamily="@font/open_sans_bold"
-            android:text="Save"
-            android:textAllCaps="false" />
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="@font/open_sans_bold"
+                android:text="Запланировать тривогу "
+                android:textColor="@color/black"
+                android:textSize="14sp" />
 
-        <TextView
-            android:id="@+id/logOut"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/open_sans_bold"
-            android:gravity="end"
-            android:text="Log out"
-            android:textColor="@color/black"
-            android:textColorHint="@android:color/darker_gray" />
+            <TimePicker
+                android:id="@+id/timePicker"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true" />
 
-    </LinearLayout>
+            <Button
+                android:id="@+id/scheduleButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/timePicker"
+                android:fontFamily="@font/open_sans_bold"
+                android:text="Запланировать уведомление"
+                android:textAllCaps="false" />
+
+            <TextView
+                android:id="@+id/logOut"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/open_sans_bold"
+                android:gravity="end"
+                android:text="Log out"
+                android:textColor="@color/black"
+                android:textColorHint="@android:color/darker_gray" />
+
+        </LinearLayout>
+    </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

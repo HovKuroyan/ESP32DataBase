@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM"/>
 
     <application
         android:allowBackup="true"
@@ -12,7 +14,13 @@
         android:theme="@style/Theme.ESP32DataBase"
         tools:targetApi="31">
         <activity
-            android:name=".LoginActivity"
+            android:name=".UserActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AdminActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DeveloperActivity"
             android:exported="false" />
         <activity
             android:name=".ConfigActivity"
