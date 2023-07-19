@@ -122,6 +122,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
+                    android:backgroundTint="@color/black"
+                    android:popupBackground="#fafafa"
                     android:layout_marginBottom="10dp" />
 
                 <androidx.appcompat.widget.AppCompatButton
@@ -136,6 +138,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
+                    android:textColor="@color/black"
+                    android:gravity="end"
                     android:text="Logout" />
             </LinearLayout>
         </ScrollView>

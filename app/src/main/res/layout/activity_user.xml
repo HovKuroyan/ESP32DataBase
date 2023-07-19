@@ -45,11 +45,19 @@
         app:layout_constraintTop_toTopOf="parent"
         />
 
+    <CheckBox
+        android:id="@+id/isForLearn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Учебная"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/alarm_type_spinner" />
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraintLayout"
         android:layout_width="0dp"
         android:layout_height="200dp"
-        android:background="#e6e6e6"
+        android:background="@color/black"
         app:circularflow_angles="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -58,9 +66,10 @@
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
+            android:layout_margin="1dp"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#e6e6e6"
+            android:background="#fafafa"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

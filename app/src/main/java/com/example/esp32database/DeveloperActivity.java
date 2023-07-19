@@ -160,9 +160,11 @@ public class DeveloperActivity extends AppCompatActivity {
     private void deleteUser(String deleteUserUID) {
         if (deleteUserUID != null) {
 
-            DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("alarms").child(deleteUserUID);
-            ref.removeValue();
 
+            DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("alarms").child(deleteUserUID);
+            if (ref != null) {
+                ref.removeValue();
+            }
             CollectionReference schoolsCollection = db.collection("users");
 
             schoolsCollection.get()
@@ -199,7 +201,7 @@ public class DeveloperActivity extends AppCompatActivity {
                     });
             db.collection("users").document(deleteUserUID).delete();
 
-
+            readSchoolNames();
         }
     }
 
@@ -228,7 +230,7 @@ public class DeveloperActivity extends AppCompatActivity {
 
                             // Set the initial role as "user"
                             setUserRole(uid, isAdmin ? "admin" : "user", name, password, String.valueOf(isAlarm), email);
-
+                            readSchoolNames();
                             Toast.makeText(DeveloperActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
                         } else {
                             // Registration failed
@@ -308,7 +310,7 @@ public class DeveloperActivity extends AppCompatActivity {
                             String schoolName = documentSnapshot.getString("name");
                             String uid = documentSnapshot.getString("uid");
                             String isAlarm = documentSnapshot.getString("isAlarm");
-                            if (Objects.equals(isAlarm, "true")) {
+                            if (!Objects.equals(uid, "JFizCCdzC5RfHXj33oeqwg3ml522")) {
                                 usersUid.add(uid);
                                 schoolNames.add(schoolName);
                             }

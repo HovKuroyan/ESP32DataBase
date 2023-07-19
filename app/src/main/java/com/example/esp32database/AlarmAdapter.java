@@ -1,5 +1,6 @@
 package com.example.esp32database;
 
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,7 +34,14 @@ public class AlarmAdapter extends RecyclerView.Adapter<AlarmAdapter.ViewHolder> 
         Alarm alarm = alarms.get(position);
         holder.tvDateTime.setText(alarm.getDateTime());
         holder.tvAlarmType.setText(alarm.getAlarmType());
-        holder.switchState.setText(String.valueOf(alarm.isSwitchState()));
+        holder.tvSchoolName.setText(alarm.getSchoolName());
+        holder.switchState.setText(String.valueOf(alarm.getSwitchState()));
+
+        RecyclerView.LayoutParams layoutParams = (RecyclerView.LayoutParams) holder.itemView.getLayoutParams();
+        int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2, holder.itemView.getResources().getDisplayMetrics());
+        int marginSecond = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, holder.itemView.getResources().getDisplayMetrics());
+        layoutParams.setMargins(marginSecond, margin, marginSecond, margin);
+        holder.itemView.setLayoutParams(layoutParams);
     }
 
     @Override
@@ -45,11 +53,13 @@ public class AlarmAdapter extends RecyclerView.Adapter<AlarmAdapter.ViewHolder> 
         TextView tvDateTime;
         TextView tvAlarmType;
         TextView switchState;
+        TextView tvSchoolName;
 
         public ViewHolder(View view) {
             super(view);
             tvDateTime = view.findViewById(R.id.tvDateTime);
             tvAlarmType = view.findViewById(R.id.tvAlarmType);
+            tvSchoolName = view.findViewById(R.id.tvSchoolName);
             switchState = view.findViewById(R.id.switchState);
         }
     }

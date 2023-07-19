@@ -2,42 +2,54 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#e6e6e6"
+    android:background="@drawable/rounded_corner"
     android:orientation="horizontal"
-    android:padding="2dp">
+    android:padding="8dp">
 
     <TextView
         android:id="@+id/tvDateTime"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:background="#e6e6e6"
+        android:fontFamily="@font/roboto_bold"
         android:gravity="center"
         android:text="Date and Time"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
-        android:textColor="@android:color/black"
+        android:textColor="#000000"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/tvSchoolName"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:fontFamily="@font/roboto_bold"
+        android:gravity="center"
+        android:text="School Name"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textColor="#000000"
         android:textSize="14sp" />
 
     <TextView
         android:id="@+id/tvAlarmType"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
         android:layout_weight="1"
-        android:background="#e6e6e6"
+        android:fontFamily="@font/roboto_bold"
         android:gravity="center"
         android:text="Alarm Type"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-        android:textColor="@color/black"
+        android:textColor="#000000"
         android:textSize="14sp" />
 
     <TextView
         android:id="@+id/switchState"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
         android:layout_weight="1"
-        android:background="#e6e6e6"
+        android:fontFamily="@font/roboto_bold"
         android:gravity="center"
         android:text="Switch state"
-        android:textColor="@color/black"
+        android:textColor="#000000"
         android:textSize="14sp" />
 </LinearLayout>

@@ -4,13 +4,23 @@ public class Alarm {
     private String dateTime;
     private String alarmType;
     private String switchState;
+    private String schoolName;
+
+    public String getSchoolName() {
+        return schoolName;
+    }
+
+    public void setSchoolName(String schoolName) {
+        this.schoolName = schoolName;
+    }
 
     public Alarm() {}
 
-    public Alarm(String dateTime, String alarmType, String switchState) {
+    public Alarm(String dateTime, String alarmType, String switchState, String schoolName) {
         this.dateTime = dateTime;
         this.alarmType = alarmType;
         this.switchState = switchState;
+        this.schoolName = schoolName;
     }
 
     public String getDateTime() {
@@ -29,7 +39,7 @@ public class Alarm {
         this.alarmType = alarmType;
     }
 
-    public String isSwitchState() {
+    public String getSwitchState() {
         return switchState;
     }
 

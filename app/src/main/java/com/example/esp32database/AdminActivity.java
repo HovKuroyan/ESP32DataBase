@@ -157,6 +157,7 @@ public class AdminActivity extends AppCompatActivity {
 //                                        } catch (Exception e) {
 //                                            Toast.makeText(AdminActivity.this, "SMS Failed to Send, Please try again", Toast.LENGTH_SHORT).show();
 //                                        }
+
                                         int pos = 0;
                                         for (int i = 0; i < schoolList.size(); i++) {
                                             String name = schoolArray[schoolList.get(i)];
@@ -170,11 +171,11 @@ public class AdminActivity extends AppCompatActivity {
                                             mDatabase = FirebaseDatabase.getInstance().getReference("alarms").child(uid).child("my-alarm");
                                             mDatabase.child("isOn").setValue(isOn);
                                             Alarm al = new Alarm((String) DateFormat.format("hh:mm:ss a", new Date()),
-                                                    alarmTypeSpinner.getSelectedItem().toString(), isOn ? "On" : "Off");
+                                                    alarmTypeSpinner.getSelectedItem().toString(), isOn ? "On" : "Off", name);
                                             alarms.add(al);
 
 
-                                            for (int f = 0; f < alarms.size() / i + 1; f++) {
+                                            for (int f = 0; f < alarms.size(); f++) {
                                                 FirebaseDatabase.getInstance().getReference("alarms").child(uid).child("history").child(String.valueOf(f)).setValue(alarms.get(f));
                                             }
                                         }
@@ -230,9 +231,9 @@ public class AdminActivity extends AppCompatActivity {
                                             mDatabase = FirebaseDatabase.getInstance().getReference("alarms").child(uid).child("my-alarm");
                                             mDatabase.child("isOn").setValue(isOn);
                                             Alarm al = new Alarm((String) DateFormat.format("hh:mm:ss a", new Date()),
-                                                    alarmTypeSpinner.getSelectedItem().toString(), isOn ? "On" : "Off");
+                                                    alarmTypeSpinner.getSelectedItem().toString(), isOn ? "On" : "Off", name);
                                             alarms.add(al);
-                                            for (int f = 0; f < alarms.size() / i + 1; f++) {
+                                            for (int f = 0; f < alarms.size() / (i + 1); f++) {
                                                 FirebaseDatabase.getInstance().getReference("alarms").child(uid).child("history").child(String.valueOf(f)).setValue(alarms.get(f));
                                             }
                                         }

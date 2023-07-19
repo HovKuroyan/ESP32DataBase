@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="alarm_types">
-        <item>Учебная</item>
         <item>Воздушная</item>
         <item>Землетрясение</item>
+        <item>Внимание</item>
     </string-array>
 </resources>
