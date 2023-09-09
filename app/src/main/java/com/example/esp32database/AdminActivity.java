@@ -13,25 +13,20 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.telephony.SmsManager;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.esp32database.DB.DataBaseHelper;
-import com.example.esp32database.DB.Result;
+import com.example.esp32database.ChoosingArea.SharedPreferencesHelper;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -40,41 +35,32 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 public class AdminActivity extends AppCompatActivity {
     private DatabaseReference mDatabase, databaseReference;
-    private RecyclerView recyclerView;
     private List<Alarm> alarms;
     private AlarmAdapter alarmAdapter;
-    private ProgressBar progressBar;
     static boolean isOn = false;
     AlertDialog.Builder builder;
     private FirebaseAuth firebaseAuth;
-    TextView tvSchool;
     boolean[] selectedSchool;
     List<Integer> schoolList = new ArrayList<>();
     boolean isAllSelected = false;
     String[] schoolArray = {"School 1", "School 2", "School 3"};
     FirebaseFirestore db;
     List<String> schoolNames, usersUid;
-    Spinner schoolNamesSpinner;
-    String uid, logUID;
+    private List<String> alarmList;
+
 
     @Override
     public void onBackPressed() {
@@ -86,21 +72,39 @@ public class AdminActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin);
         Button btn = findViewById(R.id.admin_btn);
+        Button btnChoose = findViewById(R.id.btnChoose);
+        btnChoose.setBackgroundColor(Color.parseColor("#008577"));
+        btnChoose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(AdminActivity.this, RegionActivity.class));
+            }
+        });
+
+        alarmList = new ArrayList<>();
+        alarmList.add("Avag dproc");
+        alarmList.add("false");
+
+        alarmList.add("Eritasardakan 1");
+        alarmList.add("false");
+
+        alarmList.add("Eritasardakan 3");
+        alarmList.add("false");
+
+        alarmList.add("Eritasardakan 2");
+        alarmList.add("false");
+
+        SharedPreferencesHelper.saveStringList(this, alarmList);
+
 
         schoolNames = new ArrayList<>();
 
         FirebaseApp.initializeApp(this); // Initialize Firebase
         db = FirebaseFirestore.getInstance(); // Get Firestore instance
 
-        tvSchool = findViewById(R.id.admin_select_schools);
         AppCompatButton btnConfig = findViewById(R.id.admin_btn_config);
         Spinner alarmTypeSpinner = findViewById(R.id.admin_alarm_type_spinner);
-        schoolNamesSpinner = findViewById(R.id.school_names_spinner);
-        recyclerView = findViewById(R.id.admin_recycler_view);
-        progressBar = findViewById(R.id.admin_progress_bar);
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        progressBar.setVisibility(View.VISIBLE);
 
 
         firebaseAuth = FirebaseAuth.getInstance();
@@ -113,7 +117,6 @@ public class AdminActivity extends AppCompatActivity {
         alarms = new ArrayList<>();
         alarmAdapter = new AlarmAdapter(alarms, databaseReference);
 
-        recyclerView.setAdapter(alarmAdapter);
 
 
         String[] list = getResources().getStringArray(R.array.alarm_types);
@@ -143,8 +146,7 @@ public class AdminActivity extends AppCompatActivity {
                                     public void onClick(DialogInterface dialog, int id) {
                                         //turn off views
                                         alarmTypeSpinner.setEnabled(false);
-                                        tvSchool.setEnabled(false);
-                                        schoolNamesSpinner.setEnabled(false);
+//                                        tvSchool.setEnabled(false);
 
                                         setChecked(btn, isOn);
 //                                        DataBaseHelper dbHelper = new DataBaseHelper(AdminActivity.this);
@@ -202,8 +204,7 @@ public class AdminActivity extends AppCompatActivity {
                                     public void onClick(DialogInterface dialog, int id) {
                                         //turn on views
                                         alarmTypeSpinner.setEnabled(true);
-                                        tvSchool.setEnabled(true);
-                                        schoolNamesSpinner.setEnabled(true);
+//                                        tvSchool.setEnabled(true);
 
                                         setChecked(btn, isOn);
 //                                        DataBaseHelper dbHelper = new DataBaseHelper(AdminActivity.this);
@@ -265,30 +266,12 @@ public class AdminActivity extends AppCompatActivity {
             }
         });
 
-        schoolNamesSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selectedName = parent.getItemAtPosition(position).toString();
-                for (int i = 0; i < schoolNames.size(); i++) {
-                    if (schoolNames.get(i).equals(selectedName)) {  // This line causes the NullPointerException
-                        logUID = usersUid.get(i);
-                        break;
-                    }
-                }
-                log(logUID);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                Toast.makeText(AdminActivity.this, "Nothing", Toast.LENGTH_SHORT).show();
-            }
-        });
-        tvSchool.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                customSwitch();
-            }
-        });
+//        tvSchool.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                customSwitch();
+//            }
+//        });
         readSchoolNames();
     }
 
@@ -298,7 +281,6 @@ public class AdminActivity extends AppCompatActivity {
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                progressBar.setVisibility(View.GONE);
 
                 alarms.clear();
                 try {
@@ -309,11 +291,9 @@ public class AdminActivity extends AppCompatActivity {
                 } catch (RuntimeException e) {
                     Toast.makeText(AdminActivity.this, "Err", Toast.LENGTH_SHORT).show();
                 }
-                recyclerView.scrollToPosition(alarmAdapter.getItemCount() - 1);
                 alarmAdapter.notifyDataSetChanged();
                 alarmAdapter = new AlarmAdapter(alarms, databaseReference);
 
-                recyclerView.setAdapter(alarmAdapter);
             }
 
             @Override
@@ -361,9 +341,9 @@ public class AdminActivity extends AppCompatActivity {
                             }
                         }
                         if (isAllSelected) {
-                            tvSchool.setText("All");
+//                            tvSchool.setText("All");
                         } else {
-                            tvSchool.setText(stringBuilder.toString());
+//                            tvSchool.setText(stringBuilder.toString());
                         }
                     }
                 })
@@ -378,7 +358,7 @@ public class AdminActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         Arrays.fill(selectedSchool, false);
                         schoolList.clear();
-                        tvSchool.setText("");
+//                        tvSchool.setText("");
                     }
                 });
 
@@ -429,17 +409,14 @@ public class AdminActivity extends AppCompatActivity {
                         }
 
                         selectedSchool = new boolean[schoolArray.length];
-                        tvSchool.setTextColor(Color.BLACK);
+//                        tvSchool.setTextColor(Color.BLACK);
 
                         Arrays.fill(selectedSchool, true);
                         for (int i = 0; i < schoolArray.length; i++) {
                             schoolList.add(i);
                         }
-                        tvSchool.setText("All");
+//                        tvSchool.setText("All");
 
-                        ArrayAdapter<String> adapter2 = new ArrayAdapter<>(AdminActivity.this, R.layout.spinner_item, schoolNames);
-                        schoolNamesSpinner.setAdapter(adapter2);
-                        schoolNamesSpinner.setSelection(0);
                         Toast.makeText(AdminActivity.this, "Success", Toast.LENGTH_SHORT).show();
                     }
                 })

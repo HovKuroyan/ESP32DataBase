@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">AlArm</string>
+    <string name="backbutton">BackButton</string>
 </resources>

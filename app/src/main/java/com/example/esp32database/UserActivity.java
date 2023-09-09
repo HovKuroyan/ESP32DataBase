@@ -58,10 +58,7 @@ import java.util.Objects;
 
 public class UserActivity extends AppCompatActivity {
     private DatabaseReference mDatabase, databaseReference;
-    private RecyclerView recyclerView;
     private List<Alarm> alarms;
-    private AlarmAdapter alarmAdapter;
-    private ProgressBar progressBar;
     static boolean isOn = false;
     AlertDialog.Builder builder;
     List<String> schoolNames, usersUid;
@@ -90,12 +87,8 @@ public class UserActivity extends AppCompatActivity {
         Button btn = findViewById(R.id.btn);
         AppCompatButton btnConfig = findViewById(R.id.btnConfig);
         Spinner alarmTypeSpinner = findViewById(R.id.alarm_type_spinner);
-        recyclerView = findViewById(R.id.recyclerView);
-        progressBar = findViewById(R.id.progressBar);
         isForLearn = findViewById(R.id.isForLearn);
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        progressBar.setVisibility(View.VISIBLE);
 
 
         firebaseAuth = FirebaseAuth.getInstance();
@@ -106,9 +99,7 @@ public class UserActivity extends AppCompatActivity {
         mDatabase = FirebaseDatabase.getInstance().getReference("alarms").child(uid).child("my-alarm");
 
         alarms = new ArrayList<>();
-        alarmAdapter = new AlarmAdapter(alarms, databaseReference);
 
-        recyclerView.setAdapter(alarmAdapter);
 
 
         String[] list = getResources().getStringArray(R.array.alarm_types);
@@ -271,14 +262,11 @@ public class UserActivity extends AppCompatActivity {
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                progressBar.setVisibility(View.GONE);
                 alarms.clear();
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Alarm alarm = dataSnapshot.getValue(Alarm.class);
                     alarms.add(alarm);
                 }
-                recyclerView.scrollToPosition(alarmAdapter.getItemCount() - 1);
-                alarmAdapter.notifyDataSetChanged();
             }
 
             @Override

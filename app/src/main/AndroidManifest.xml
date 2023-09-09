@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <uses-permission android:name="android.permission.SEND_SMS" />
-    <uses-permission android:name="com.android.alarm.permission.SET_ALARM"/>
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -17,6 +18,15 @@
         android:theme="@style/Theme.ESP32DataBase"
         tools:targetApi="31">
         <activity
+            android:name=".ScheduleAlarm"
+            android:exported="false" />
+        <activity
+            android:name=".ResponsibleNumbers"
+            android:exported="false" />
+        <activity
+            android:name=".NumberMESAlarm"
+            android:exported="false" />
+        <activity
             android:name=".UserActivity"
             android:exported="false" />
         <activity
@@ -27,6 +37,15 @@
             android:exported="false" />
         <activity
             android:name=".ConfigActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CitiesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".BuildingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".RegionActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"
